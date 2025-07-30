@@ -1,0 +1,9 @@
+node_modules
+.next
+.cache
+public
+coverage
+.env*
+dist
+build
+*.log
