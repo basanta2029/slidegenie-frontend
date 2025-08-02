@@ -23,10 +23,15 @@ export const metadata: Metadata = {
   keywords: ['academic', 'presentation', 'slides', 'AI', 'generator', 'education'],
   authors: [{ name: 'SlideGenie Team' }],
   creator: 'SlideGenie',
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+  },
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: process.env.NEXT_PUBLIC_APP_URL || 'https://slidegenie.com',
+    url: process.env.NEXT_PUBLIC_APP_URL || '',
     siteName: 'SlideGenie',
     title: 'SlideGenie - Academic Presentation Generator',
     description: 'Transform your academic content into professional presentations',
@@ -60,6 +65,40 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${poppins.variable} font-sans antialiased`}>
+        {process.env.NODE_ENV === 'development' && (
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+                // Suppress MetaMask and other extension errors in development
+                if (typeof window !== 'undefined') {
+                  const originalError = console.error;
+                  const originalWarn = console.warn;
+                  
+                  console.error = (...args) => {
+                    const errorString = args[0]?.toString?.() || '';
+                    if (
+                      errorString.includes('MetaMask') ||
+                      errorString.includes('ethereum') ||
+                      errorString.includes('chrome-extension://') ||
+                      errorString.includes('Failed to connect')
+                    ) {
+                      return; // Suppress these errors
+                    }
+                    originalError.apply(console, args);
+                  };
+                  
+                  console.warn = (...args) => {
+                    const warnString = args[0]?.toString?.() || '';
+                    if (warnString.includes('MetaMask') || warnString.includes('ethereum')) {
+                      return; // Suppress these warnings
+                    }
+                    originalWarn.apply(console, args);
+                  };
+                }
+              `,
+            }}
+          />
+        )}
         <Providers>
           {children}
         </Providers>
