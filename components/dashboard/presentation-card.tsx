@@ -22,6 +22,14 @@ import {
 import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
 import { cn } from '@/lib/utils'
+import { PresentationPreviewPopover } from './presentation-preview-popover'
+
+interface Slide {
+  id: string
+  order: number
+  title?: string
+  thumbnail?: string
+}
 
 interface Presentation {
   id: string
@@ -31,6 +39,7 @@ interface Presentation {
   lastModified: Date
   template: string
   slides: number
+  slideData?: Slide[]
   status?: string
 }
 
@@ -57,8 +66,17 @@ export function PresentationCard({
 
   if (view === 'list') {
     return (
-      <Card className={cn('group hover:shadow-md transition-shadow', className)}>
-        <div className="flex items-center gap-4 p-4">
+      <PresentationPreviewPopover
+        presentationId={presentation.id}
+        title={presentation.title}
+        description={presentation.description}
+        slides={presentation.slideData}
+        slideCount={presentation.slides}
+        lastModified={presentation.lastModified}
+        template={presentation.template}
+      >
+        <Card className={cn('group hover:shadow-md transition-shadow cursor-pointer', className)}>
+          <div className="flex items-center gap-4 p-4">
           {/* Thumbnail */}
           <div className="hidden sm:block w-24 h-16 rounded bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 flex-shrink-0">
             <div className="w-full h-full flex items-center justify-center">
@@ -147,40 +165,50 @@ export function PresentationCard({
             </DropdownMenu>
           </div>
         </div>
-      </Card>
+        </Card>
+      </PresentationPreviewPopover>
     )
   }
 
   return (
-    <Card className={cn('group hover:shadow-lg transition-shadow', className)}>
-      {/* Thumbnail */}
-      <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 relative overflow-hidden">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <FileTextIcon className="h-16 w-16 text-gray-400" />
+    <PresentationPreviewPopover
+      presentationId={presentation.id}
+      title={presentation.title}
+      description={presentation.description}
+      slides={presentation.slideData}
+      slideCount={presentation.slides}
+      lastModified={presentation.lastModified}
+      template={presentation.template}
+    >
+      <Card className={cn('group hover:shadow-lg transition-shadow cursor-pointer', className)}>
+        {/* Thumbnail */}
+        <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 relative overflow-hidden">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <FileTextIcon className="h-16 w-16 text-gray-400" />
+          </div>
+          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+            <Button variant="secondary" size="sm" asChild>
+              <Link href={`/editor/${presentation.id}`}>
+                <EditIcon className="mr-2 h-4 w-4" />
+                Edit
+              </Link>
+            </Button>
+            <Button variant="secondary" size="sm" asChild>
+              <Link href={`/preview/${presentation.id}`}>
+                <EyeIcon className="mr-2 h-4 w-4" />
+                View
+              </Link>
+            </Button>
+          </div>
+          {presentation.status && (
+            <Badge
+              variant="secondary"
+              className={cn('absolute top-2 right-2', statusColors[presentation.status as keyof typeof statusColors])}
+            >
+              {presentation.status}
+            </Badge>
+          )}
         </div>
-        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-          <Button variant="secondary" size="sm" asChild>
-            <Link href={`/editor/${presentation.id}`}>
-              <EditIcon className="mr-2 h-4 w-4" />
-              Edit
-            </Link>
-          </Button>
-          <Button variant="secondary" size="sm" asChild>
-            <Link href={`/preview/${presentation.id}`}>
-              <EyeIcon className="mr-2 h-4 w-4" />
-              View
-            </Link>
-          </Button>
-        </div>
-        {presentation.status && (
-          <Badge
-            variant="secondary"
-            className={cn('absolute top-2 right-2', statusColors[presentation.status as keyof typeof statusColors])}
-          >
-            {presentation.status}
-          </Badge>
-        )}
-      </div>
 
       <CardHeader className="space-y-1">
         <div className="flex items-start justify-between">
@@ -242,6 +270,7 @@ export function PresentationCard({
           </span>
         </div>
       </CardContent>
-    </Card>
+      </Card>
+    </PresentationPreviewPopover>
   )
 }
